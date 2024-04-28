@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { headers } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
+import { headers } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SubmitButton } from "./submit-button";
 
@@ -25,7 +25,7 @@ export default function Login({
       return redirect("/login?message=Could not authenticate user");
     }
 
-    return redirect("/protected");
+    return redirect("/maps");
   };
 
   const signUp = async (formData: FormData) => {
@@ -36,16 +36,31 @@ export default function Login({
     const password = formData.get("password") as string;
     const supabase = createClient();
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${origin}/auth/callback`,
+        data: {
+          confirmation_sent_at: Date.now(),
+        },
       },
     });
 
-    if (error) {
+    if (error || !data?.user?.id) {
+      console.log(error, data);
       return redirect("/login?message=Could not authenticate user");
+    }
+
+    const { error: insertUserError } = await supabase.from("profiles").insert({
+      id: data.user?.id,
+      email: email,
+    });
+
+    if (insertUserError) {
+      return redirect(
+        "/login?message=Could not update supabase table. Please contact admin."
+      );
     }
 
     return redirect("/login?message=Check email to continue sign in process");
