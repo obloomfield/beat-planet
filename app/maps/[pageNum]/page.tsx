@@ -22,6 +22,7 @@ export default async function Page({
   }
 
   const beatmaps: Beatmap[] = await getBeatmaps(page - 1);
+  // console.log(beatmaps);
   return (
     <div className="">
       <h2 className="font-bold text-4xl mb-4 text-center">All Beatmaps</h2>

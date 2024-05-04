@@ -28,7 +28,9 @@ type Beatmap = {
   id: number;
   title: string;
   artist: string;
-  author: string;
+  profiles: {
+    email: string;
+  };
   difficulty: number;
   bpm: number;
   offset: number;

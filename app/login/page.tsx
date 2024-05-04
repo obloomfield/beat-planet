@@ -52,10 +52,13 @@ export default function Login({
       return redirect("/login?message=Could not authenticate user");
     }
 
+    console.log(data.user?.id, email);
+
     const { error: insertUserError } = await supabase.from("profiles").insert({
       id: data.user?.id,
       email: email,
     });
+    console.log(insertUserError);
 
     if (insertUserError) {
       return redirect(

@@ -11,16 +11,10 @@ export async function getBeatmaps(pageNum?: number) {
     beatmaps = await (
       await supabase
         .from("beatmaps")
-        .select(
-          `id,
-          auth.users: (
-            email
-          )`
-        )
+        .select(`*, profiles(email)`)
         .range(ENTRIES_PER_PAGE * pageNum, ENTRIES_PER_PAGE * (pageNum + 1))
     ).data;
   }
-  console.log(beatmaps);
   return beatmaps as Beatmap[];
 }
 
