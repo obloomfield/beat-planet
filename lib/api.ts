@@ -11,7 +11,7 @@ export async function getBeatmaps(pageNum?: number) {
     beatmaps = await (
       await supabase
         .from("beatmaps")
-        .select(`*, profiles(email)`)
+        .select(`*, profiles(id, email)`)
         .range(ENTRIES_PER_PAGE * pageNum, ENTRIES_PER_PAGE * (pageNum + 1) - 1)
     ).data;
   }
@@ -78,4 +78,28 @@ export async function getNumUsers() {
     .from("profiles")
     .select("*", { count: "exact" });
   return count;
+}
+
+export async function getMapByID(id: number) {
+  const supabase = createClient();
+  const map = await (
+    await supabase
+      .from("beatmaps")
+      .select("*, profiles(id, email)")
+      .eq("id", id)
+  ).data;
+  return map && (map[0] as Beatmap | null);
+}
+
+export async function getSongForMap(
+  map: Beatmap | null,
+  user_id: string | undefined
+) {
+  if (!map || !user_id) return null;
+
+  const supabase = createClient();
+  const song = await (
+    await supabase.storage.from("map_songs").download(`${user_id}/${map.title}`)
+  ).data;
+  return song;
 }

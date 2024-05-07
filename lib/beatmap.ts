@@ -30,6 +30,7 @@ type Beatmap = {
   artist: string;
   profiles: {
     email: string;
+    id: string;
   };
   difficulty: number;
   bpm: number;

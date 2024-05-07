@@ -2,7 +2,9 @@
 
 import { beatmapFormSchema } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
+import AudioPlayer from "react-h5-audio-player";
+import "react-h5-audio-player/lib/styles.css";
 import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import { z } from "zod";
@@ -32,6 +34,8 @@ export default function CreateMapForm({
   setSheetOpen: (open: boolean) => void;
 }) {
   const [pending, submitBeatmap] = useTransition();
+
+  const [song, setSong] = useState<string | null>(null);
 
   const submitAction = async (data: FormData) => {
     createBeatmapFormAction(data)
@@ -151,12 +155,31 @@ export default function CreateMapForm({
               <FormItem>
                 <FormLabel>Song File</FormLabel>
                 <FormControl>
-                  <Input type="file" {...fileRef} />
+                  <Input
+                    type="file"
+                    {...fileRef}
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                      const file = e.target.files?.[0];
+                      console.log(file);
+                      if (file) {
+                        setSong(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+          {song && (
+            <AudioPlayer
+              className="py-0"
+              src={song}
+              showJumpControls={false}
+              layout="horizontal-reverse"
+            />
+          )}
 
           {pending ? (
             <Loader />
