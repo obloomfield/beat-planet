@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import AuthButton from "../components/AuthButton";
+import AuthButton from "../components/server/AuthButton";
 
 export default async function Index() {
   const canInitSupabaseClient = () => {

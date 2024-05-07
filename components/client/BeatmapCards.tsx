@@ -1,3 +1,5 @@
+"use client";
+
 import { Beatmap } from "@/lib/beatmap";
 import { cn } from "@/lib/utils";
 import Link from "next/link";

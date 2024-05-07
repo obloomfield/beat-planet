@@ -1,7 +1,7 @@
 "use server";
 
-import BeatmapCards from "@/components/BeatmapCards";
-import PageSelector from "@/components/PageSelector";
+import BeatmapCards from "@/components/client/BeatmapCards";
+import PageSelector from "@/components/client/PageSelector";
 import { getBeatmaps, getNumBeatmaps } from "@/lib/api";
 import { Beatmap } from "@/lib/beatmap";
 import { ENTRIES_PER_PAGE } from "@/lib/consts";

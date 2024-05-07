@@ -1,26 +1,12 @@
-import AuthButton from "@/components/AuthButton";
-import CreateMapForm from "@/components/CreateMapForm";
-import {
-  Menubar,
-  MenubarContent,
-  MenubarItem,
-  MenubarMenu,
-  MenubarSeparator,
-  MenubarShortcut,
-  MenubarTrigger,
-} from "@/components/ui/menubar";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { FaGlobe, FaMap } from "react-icons/fa";
-import { FaFileCirclePlus, FaPeopleGroup } from "react-icons/fa6";
+"use server";
 
-export default function NavbarLayout({
+import CreateMapForm from "@/components/client/CreateMapForm";
+import MainMenu from "@/components/client/MainMenu";
+import AuthButton from "@/components/server/AuthButton";
+
+import { FaGlobe } from "react-icons/fa";
+
+export default async function NavbarLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -39,46 +25,7 @@ export default function NavbarLayout({
               </span>
             </div>
 
-            <Sheet>
-              <CreateMapForm />
-              <Menubar>
-                <MenubarMenu>
-                  <MenubarTrigger>beatmaps</MenubarTrigger>
-                  <MenubarContent className="text-white">
-                    <MenubarItem>
-                      All Maps
-                      <MenubarShortcut>
-                        <FaMap className="inline-block text-center" />
-                      </MenubarShortcut>
-                    </MenubarItem>
-                    <MenubarSeparator />
-                    <MenubarItem>
-                      <SheetTrigger>Create New Map</SheetTrigger>
-                      <MenubarShortcut>
-                        <FaFileCirclePlus className="inline-block text-center" />
-                      </MenubarShortcut>
-                    </MenubarItem>
-                    <MenubarItem>
-                      My Maps
-                      {/* <MenubarShortcut>
-                      <FaUser className="inline-block text-center" />
-                    </MenubarShortcut> */}
-                    </MenubarItem>
-                  </MenubarContent>
-                </MenubarMenu>
-                <MenubarMenu>
-                  <MenubarTrigger>users</MenubarTrigger>
-                  <MenubarContent className="text-white">
-                    <MenubarItem>
-                      All Users
-                      <MenubarShortcut>
-                        <FaPeopleGroup className="inline-block text-center" />
-                      </MenubarShortcut>
-                    </MenubarItem>
-                  </MenubarContent>
-                </MenubarMenu>
-              </Menubar>
-            </Sheet>
+            <MainMenu />
           </div>
           <AuthButton />
         </div>

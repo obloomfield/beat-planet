@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import "@/styles/globals.css";
 import { GeistSans } from "geist/font/sans";
 import { Inter as FontSans } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 
 // const defaultUrl = process.env.VERCEL_URL
 //   ? `https://${process.env.VERCEL_URL}`
@@ -25,6 +26,7 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
+        <Toaster position="top-center" />
         <main className="min-h-screen flex flex-col items-center text-foreground">
           {children}
         </main>
