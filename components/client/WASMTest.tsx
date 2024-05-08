@@ -1,7 +1,6 @@
 "use client";
 
-import { error } from "console";
-import { useEffect, useRef } from "react";
+import { Button } from "../ui/button";
 import Loader from "../ui/loader";
 import { useEngine } from "./context/WASM";
 
@@ -12,24 +11,17 @@ export default function WASMTest() {
     return <Loader />;
   }
 
-  const parent = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!engine.wasm) {
-      return;
+  const runBevyApp = async () => {
+    try {
+      engine.wasm?.run_onion_engine();
+    } catch (e) {
+      console.error(e);
     }
-
-    engine.wasm.default().catch((error) => {
-      console.error(error);
-    });
-  }, [parent]);
+  };
 
   return (
-    <div className="bg-slate-500">
-      <h1>(client side)</h1>
-      <div ref={parent}></div>
-      {/* <canvas id="game-canvas"></canvas> */}
-      {/* <p>3 + 1 = {engine.wasm.}</p> */}
+    <div>
+      <Button onClick={runBevyApp}>Run Onion Engine</Button>
     </div>
   );
 }

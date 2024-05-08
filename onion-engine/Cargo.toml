@@ -8,7 +8,7 @@ bevy = "0.13.2"
 wasm-bindgen = "0.2"
 
 [[bin]]
-name="bevy_test"
+name="engine_local"
 path = "src/lib.rs"
 
 [lib]
