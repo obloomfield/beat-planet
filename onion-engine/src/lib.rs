@@ -7,10 +7,20 @@ use bevy::{
         render_resource::{Extent3d, TextureDimension, TextureFormat},
     },
 };
+use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use wasm_bindgen::prelude::*;
 
+/// A marker component for our shapes so we can query them separately from the ground plane
+#[derive(Component)]
+struct Shape;
+
+#[derive(Default)]
+struct MapConfig {
+    map_text: String,
+}
+
 pub fn main() {
-  run_onion_engine();
+  run_onion_engine("test slay".to_string());
 }
 
 #[wasm_bindgen]
@@ -19,23 +29,27 @@ pub fn add(a: i32, b: i32) -> i32 {
 }
 
 #[wasm_bindgen]
-pub fn run_onion_engine() {
-    App::new()
-        .add_plugins(DefaultPlugins)
-        .add_systems(Startup, setup)
-        .add_systems(Update, rotate)
-        .run();
+pub fn run_onion_engine(test: String) {
+  let config = MapConfig {
+    map_text: test,
+  };
+
+  App::new()
+      .add_plugins(DefaultPlugins)
+      .add_plugins(EguiPlugin)
+      .add_systems(Startup, setup)
+      .add_systems(Update, rotate)
+      .add_systems(Update, move |contexts: EguiContexts| {
+        ui_example_system(contexts, &config);
+      })
+      .run();
 }
 
-fn rotate(mut query: Query<&mut Transform, With<Shape>>, time: Res<Time>) {
-  for mut transform in &mut query {
-      transform.rotate_y(time.delta_seconds() / 2.);
-  }
+fn ui_example_system(mut contexts: EguiContexts, config: &MapConfig) {
+  egui::Window::new("MAP CONTENTS").show(contexts.ctx_mut(), |ui| {
+      ui.label(config.map_text.clone());
+  });
 }
-
-/// A marker component for our shapes so we can query them separately from the ground plane
-#[derive(Component)]
-struct Shape;
 
 const X_EXTENT: f32 = 12.0;
 
@@ -100,6 +114,12 @@ fn setup(
         transform: Transform::from_xyz(0.0, 6., 12.0).looking_at(Vec3::new(0., 1., 0.), Vec3::Y),
         ..default()
     });
+}
+
+fn rotate(mut query: Query<&mut Transform, With<Shape>>, time: Res<Time>) {
+  for mut transform in &mut query {
+      transform.rotate_y(time.delta_seconds() / 2.);
+  }
 }
 
 /// Creates a colorful test pattern

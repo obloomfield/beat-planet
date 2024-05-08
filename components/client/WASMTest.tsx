@@ -13,7 +13,7 @@ export default function WASMTest() {
 
   const runBevyApp = async () => {
     try {
-      engine.wasm?.run_onion_engine();
+      engine.wasm?.run_onion_engine("hello there");
     } catch (e) {
       console.error(e);
     }
