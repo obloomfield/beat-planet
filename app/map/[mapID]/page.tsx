@@ -1,3 +1,4 @@
+import EngineBox from "@/components/client/EngineBox";
 import Playback from "@/components/client/Playback";
 import { getMapByID } from "@/lib/api";
 import { redirect } from "next/navigation";
@@ -11,11 +12,8 @@ export default async function Page({ params }: { params: { mapID: string } }) {
 
   return (
     <div>
-      <section className="info flex flex-col space-y-1 ">
-        <h1 className="text-4xl font-bold pb-2">Map Info</h1>
-        <p>
-          <b>title:</b> <span className="font-mono">{map.title}</span>
-        </p>
+      <section className="info flex flex-col space-y-1 border px-8 py-6 mt-2 rounded-xl">
+        <h1 className="text-4xl font-bold pb-2">{map.title}</h1>
         {map.artist && (
           <p>
             <b>artist:</b> <span className="font-mono">{map.artist}</span>
@@ -33,7 +31,10 @@ export default async function Page({ params }: { params: { mapID: string } }) {
           <b>BPM:</b> <span className="font-mono">{map.bpm}</span>
         </p>
       </section>
-      <Playback songPath={`${map.profiles.id}/${map.title}`} />
+      <Playback songPath={map.song_ref} />
+      <div className="flex flex-col items-center p-8">
+        <EngineBox beatmap={map} />
+      </div>
     </div>
   );
 }

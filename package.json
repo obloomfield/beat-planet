@@ -5,7 +5,7 @@
     "build": "next build",
     "rsw": "rsw",
     "dev:rsw": "concurrently 'rsw watch' 'next dev'",
-    "build:rsw": "rsw build && next build",
+    "build:rsw": "rsw build && rm node_modules/onion-engine && npm i",
     "build:wasm": "wasm-pack build onion-engine --release --target web",
     "start": "next start"
   },

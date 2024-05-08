@@ -1,3 +1,5 @@
+pub mod context;
+
 use std::f32::consts::PI;
 
 use bevy::{
@@ -8,6 +10,7 @@ use bevy::{
     },
 };
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
+use context::{get_cookies, Cookies};
 use wasm_bindgen::prelude::*;
 
 /// A marker component for our shapes so we can query them separately from the ground plane
@@ -15,12 +18,16 @@ use wasm_bindgen::prelude::*;
 struct Shape;
 
 #[derive(Default)]
-struct MapConfig {
-    map_text: String,
+struct FrontendContext {
+    title: String,
+    events: String,
+    song_url: String,
+    csrf: Option<String>,
+    uid: Option<String>,
 }
 
 pub fn main() {
-  run_onion_engine("test slay".to_string());
+  run_onion_engine("test title".to_string(),"test events".to_string(), "www.google.com".to_string(), "csrftoken=1234;uid=5678".to_string());
 }
 
 #[wasm_bindgen]
@@ -29,9 +36,15 @@ pub fn add(a: i32, b: i32) -> i32 {
 }
 
 #[wasm_bindgen]
-pub fn run_onion_engine(test: String) {
-  let config = MapConfig {
-    map_text: test,
+pub fn run_onion_engine(beatmap_title: String, beatmap_events: String, beatmap_song_url: String, cookie_string: String) {
+  let cookies: Cookies = get_cookies(cookie_string);
+
+  let config = FrontendContext {
+    title: beatmap_title,
+    events: beatmap_events,
+    song_url: beatmap_song_url,
+    csrf: cookies.csrf,
+    uid: cookies.uid,
   };
 
   App::new()
@@ -45,9 +58,16 @@ pub fn run_onion_engine(test: String) {
       .run();
 }
 
-fn ui_example_system(mut contexts: EguiContexts, config: &MapConfig) {
-  egui::Window::new("MAP CONTENTS").show(contexts.ctx_mut(), |ui| {
-      ui.label(config.map_text.clone());
+fn ui_example_system(mut contexts: EguiContexts, config: &FrontendContext) {
+  egui::Window::new("FRONTEND CONTEXT").show(contexts.ctx_mut(), |ui| {
+      ui.label("TITLE: ".to_string() + &config.title.clone());
+      ui.label("SONG URL: ".to_string() + &config.song_url.clone());
+      if config.csrf.is_some() {
+        ui.label("CSRF: ".to_string() + &config.csrf.clone().unwrap());
+      }
+      if config.uid.is_some() {
+        ui.label("UID: ".to_string() + &config.uid.clone().unwrap());
+      }
   });
 }
 
