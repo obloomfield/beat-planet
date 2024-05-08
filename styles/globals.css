@@ -173,3 +173,9 @@ input::file-selector-button {
 .rhap_time {
   color: rgb(136, 136, 136);
 }
+
+canvas {
+  position: absolute;
+  top: 10%;
+  left: 29%;
+}

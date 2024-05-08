@@ -1,4 +1,5 @@
 import MainMenu from "@/components/client/MainMenu";
+import { Providers } from "@/components/client/Providers";
 import AuthButton from "@/components/server/AuthButton";
 import { cn } from "@/lib/utils";
 import "@/styles/globals.css";
@@ -16,6 +17,28 @@ const fontSans = FontSans({
   variable: "--font-sans",
 });
 
+const Navbar = () => {
+  return (
+    <nav className="w-full flex justify-center border-b border-b-foreground/10">
+      <div className="w-full max-w-4xl flex justify-between items-center p-3 text-sm">
+        <div className="flex flex-row gap-2 items-center group">
+          {/* group-hover:text-[#f6f9df] */}
+          <div className="flex flex-row gap-2 logo items-center transition duration-300">
+            {/* group-hover:drop-shadow-[0_5px_10px_rgba(255,255,0,1)] */}
+            <FaGlobe className="inline-block text-center text-xl drop-shadow-[0_5px_10px_rgba(100,255,50,1)]" />
+            <span className="font-bold text-xl font-mono select-none">
+              beat-world
+            </span>
+          </div>
+
+          <MainMenu />
+        </div>
+        <AuthButton />
+      </div>
+    </nav>
+  );
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -29,32 +52,17 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        <Toaster position="top-center" />
-        <main className="min-h-screen flex flex-col items-center text-foreground">
-          <section className="flex-1 w-full flex flex-col gap-10 items-center">
-            <nav className="w-full flex justify-center border-b border-b-foreground/10">
-              <div className="w-full max-w-4xl flex justify-between items-center p-3 text-sm">
-                <div className="flex flex-row gap-2 items-center group">
-                  {/* group-hover:text-[#f6f9df] */}
-                  <div className="flex flex-row gap-2 logo items-center transition duration-300">
-                    {/* group-hover:drop-shadow-[0_5px_10px_rgba(255,255,0,1)] */}
-                    <FaGlobe className="inline-block text-center text-xl drop-shadow-[0_5px_10px_rgba(100,255,50,1)]" />
-                    <span className="font-bold text-xl font-mono select-none">
-                      beat-world
-                    </span>
-                  </div>
-
-                  <MainMenu />
-                </div>
-                <AuthButton />
+        <Providers>
+          <Navbar />
+          <Toaster position="top-center" />
+          <main className="min-h-screen flex flex-col items-center text-foreground">
+            <section className="flex-1 w-full flex flex-col gap-10 items-center">
+              <div className="animate-in flex-1 flex flex-col gap-20 opacity-0 min-w-80 px-3">
+                <main className="flex-1 flex flex-col gap-6">{children}</main>
               </div>
-            </nav>
-
-            <div className="animate-in flex-1 flex flex-col gap-20 opacity-0 min-w-80 px-3">
-              <main className="flex-1 flex flex-col gap-6">{children}</main>
-            </div>
-          </section>
-        </main>
+            </section>
+          </main>
+        </Providers>
       </body>
     </html>
   );

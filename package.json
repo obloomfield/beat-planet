@@ -3,6 +3,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "rsw": "rsw",
+    "dev:rsw": "concurrently 'rsw watch' 'next dev'",
+    "build:rsw": "rsw build && next build",
+    "build:wasm": "wasm-pack build onion-engine --release --target web",
     "start": "next start"
   },
   "dependencies": {
@@ -32,9 +36,11 @@
     "tailwindcss": "3.4.1",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "5.3.3",
-    "zod": "^3.23.6"
+    "zod": "^3.23.6",
+    "onion-engine": "file:onion-engine/pkg"
   },
   "devDependencies": {
+    "concurrently": "^7.6.0",
     "@types/node": "20.11.5",
     "@types/react": "18.2.48",
     "@types/react-dom": "18.2.18",
