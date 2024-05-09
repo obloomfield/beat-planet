@@ -1,7 +1,5 @@
-pub struct Cookies {
-  pub csrf: Option<String>,
-  pub uid: Option<String>,
-}
+use crate::types::Cookies;
+
 
 pub fn get_cookies(cookie_string: String) -> Cookies {
   Cookies {

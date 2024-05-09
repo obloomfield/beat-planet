@@ -3657,6 +3657,7 @@ dependencies = [
  "bevy_kira_audio",
  "bevy_web_asset",
  "console_error_panic_hook",
+ "rand 0.8.5",
  "wasm-bindgen",
  "wasm-cookies",
 ]
