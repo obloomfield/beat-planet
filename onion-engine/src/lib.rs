@@ -3,21 +3,36 @@ pub mod context;
 use std::f32::consts::PI;
 
 use bevy::{
-    prelude::*,
-    render::{
+    core_pipeline::bloom::BloomSettings, prelude::*, render::{
         render_asset::RenderAssetUsages,
         render_resource::{Extent3d, TextureDimension, TextureFormat},
-    },
+    }
 };
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use context::{get_cookies, Cookies};
 use wasm_bindgen::prelude::*;
+
+use bevy_web_asset::WebAssetPlugin;
+use bevy_kira_audio::prelude::*;
 
 /// A marker component for our shapes so we can query them separately from the ground plane
 #[derive(Component)]
 struct Shape;
 
 #[derive(Default)]
+struct Lane {
+  entity: Option<Entity>,
+  material: Handle<StandardMaterial>,
+}
+
+#[derive(Resource, Default)]
+struct Game {
+  lanes: Vec<Lane>,
+  score: i32,
+
+}
+
+#[derive(Default, Clone)]
 struct FrontendContext {
     title: String,
     events: String,
@@ -27,7 +42,7 @@ struct FrontendContext {
 }
 
 pub fn main() {
-  run_onion_engine("test title".to_string(),"test events".to_string(), "www.google.com".to_string(), "csrftoken=1234;uid=5678".to_string());
+  run_onion_engine("EPIC CHILL SONG".to_string(),"test events".to_string(), "www.google.com".to_string(), "csrftoken=1234;uid=5678".to_string());
 }
 
 #[wasm_bindgen]
@@ -46,21 +61,32 @@ pub fn run_onion_engine(beatmap_title: String, beatmap_events: String, beatmap_s
     csrf: cookies.csrf,
     uid: cookies.uid,
   };
+  let config_clone = config.clone();
+  // i am so lazy
 
   App::new()
-      .add_plugins(DefaultPlugins)
+      .add_plugins((WebAssetPlugin::default(), DefaultPlugins, AudioPlugin))
       .add_plugins(EguiPlugin)
-      .add_systems(Startup, setup)
+      .init_resource::<Game>()
+      .add_systems(Startup, start_bg_audio)
+      .add_systems(Startup, move 
+        |commands: Commands, meshes: ResMut<Assets<Mesh>>, materials: ResMut<Assets<StandardMaterial>>, game: ResMut<Game>| {
+          setup(commands, meshes, materials, game, &config);
+        })
       .add_systems(Update, rotate)
       .add_systems(Update, move |contexts: EguiContexts| {
-        ui_example_system(contexts, &config);
+        ui_example_system(contexts, &config_clone);
       })
+      .add_systems(Update, (key_input, update_materials))
       .run();
+}
+
+fn start_bg_audio(asset_server: Res<AssetServer>, audio: Res<Audio>) {
+  audio.play(asset_server.load("audio.ogg")).looped();
 }
 
 fn ui_example_system(mut contexts: EguiContexts, config: &FrontendContext) {
   egui::Window::new("FRONTEND CONTEXT").show(contexts.ctx_mut(), |ui| {
-      ui.label("TITLE: ".to_string() + &config.title.clone());
       ui.label("SONG URL: ".to_string() + &config.song_url.clone());
       if config.csrf.is_some() {
         ui.label("CSRF: ".to_string() + &config.csrf.clone().unwrap());
@@ -72,17 +98,40 @@ fn ui_example_system(mut contexts: EguiContexts, config: &FrontendContext) {
 }
 
 const X_EXTENT: f32 = 12.0;
+const NUM_LANES: usize = 4;
+const LANE_EXTENT: f32 = 6.0;
 
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut images: ResMut<Assets<Image>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    let debug_material = materials.add(StandardMaterial {
-        base_color_texture: Some(images.add(uv_debug_texture())),
-        ..default()
-    });
+    mut game: ResMut<Game>,
+    config: &FrontendContext,
+) { 
+
+    commands.spawn(NodeBundle {
+        style: Style {
+            position_type: PositionType::Relative,
+            top: Val::Percent(-8.0),
+            left: Val::Percent(30.0),
+            width: Val::Px(600.0),
+            height: Val::Px(200.0),
+            ..Default::default()
+        },
+        ..Default::default()
+    }).with_children(
+        |parent| {
+          parent.spawn(TextBundle::from_section(
+            config.title.clone(), 
+            TextStyle {
+                    font_size: 60.0,
+                    color: Color::WHITE,
+                    font: Default::default()
+            }));
+        }
+    );
+
+    let debug_material = materials.add(Color::rgb(10.0, 10.0, 10.0));
 
     let shapes = [
         meshes.add(Cuboid::default()),
@@ -112,28 +161,53 @@ fn setup(
         ));
     }
 
-    commands.spawn(PointLightBundle {
-        point_light: PointLight {
-            shadows_enabled: true,
-            intensity: 10_000_000.,
-            range: 100.0,
+    game.lanes = (0..NUM_LANES).map(|i| {
+      let material = materials.add(Color::rgb(0.5, 0.5, 0.5));
+      let id = commands.spawn((
+        PbrBundle {
+            mesh: meshes.add(Cylinder::default().mesh()),
+            material: material.clone(),
+            transform: Transform::from_xyz(
+                -LANE_EXTENT / 2. + i as f32 / (NUM_LANES - 1) as f32 * LANE_EXTENT,
+                -0.2,
+                5.0,
+            ),
             ..default()
         },
-        transform: Transform::from_xyz(8.0, 16.0, 8.0),
-        ..default()
-    });
+      )).id();
+      Lane {
+        entity: Some(id),
+        material: material.clone(),
+      }
+    }).collect();
+
+  
+    // commands.spawn(PointLightBundle {
+    //     point_light: PointLight {
+    //         shadows_enabled: true,
+    //         intensity: 10_000_000.,
+    //         range: 100.0,
+    //         ..default()
+    //     },
+    //     transform: Transform::from_xyz(8.0, 16.0, 8.0),
+    //     ..default()
+    // });
 
     // ground plane
     commands.spawn(PbrBundle {
         mesh: meshes.add(Plane3d::default().mesh().size(50.0, 50.0)),
-        material: materials.add(Color::SILVER),
+        material: materials.add(Color::BLACK),
         ..default()
     });
 
-    commands.spawn(Camera3dBundle {
+    commands.spawn((Camera3dBundle {
         transform: Transform::from_xyz(0.0, 6., 12.0).looking_at(Vec3::new(0., 1., 0.), Vec3::Y),
+        camera: Camera {
+          hdr: true,
+          ..default()
+        },
         ..default()
-    });
+    }, BloomSettings::OLD_SCHOOL));
 }
 
 fn rotate(mut query: Query<&mut Transform, With<Shape>>, time: Res<Time>) {
@@ -142,35 +216,36 @@ fn rotate(mut query: Query<&mut Transform, With<Shape>>, time: Res<Time>) {
   }
 }
 
-/// Creates a colorful test pattern
-fn uv_debug_texture() -> Image {
-  const TEXTURE_SIZE: usize = 8;
-
-  let mut palette: [u8; 32] = [
-      255, 102, 159, 255, 255, 159, 102, 255, 236, 255, 102, 255, 121, 255, 102, 255, 102, 255,
-      198, 255, 102, 198, 255, 255, 121, 102, 255, 255, 236, 102, 255, 255,
-  ];
-
-  let mut texture_data = [0; TEXTURE_SIZE * TEXTURE_SIZE * 4];
-  for y in 0..TEXTURE_SIZE {
-      let offset = TEXTURE_SIZE * y * 4;
-      texture_data[offset..(offset + TEXTURE_SIZE * 4)].copy_from_slice(&palette);
-      palette.rotate_right(4);
+fn key_input(keyboard_input: Res<ButtonInput<KeyCode>>, 
+  mut materials: ResMut<Assets<StandardMaterial>>,
+  game: ResMut<Game>) {
+  // println!("PRESS: {:?}", keyboard_input);
+  let mut keys_pressed = Vec::new();
+  if keyboard_input.pressed(KeyCode::KeyC) {
+    keys_pressed.push(&game.lanes[0]);
+  } if keyboard_input.pressed(KeyCode::KeyV) {
+    keys_pressed.push(&game.lanes[1]);
+  } if keyboard_input.pressed(KeyCode::KeyN) {
+    keys_pressed.push(&game.lanes[2]);
+  } if keyboard_input.pressed(KeyCode::KeyM) {
+    keys_pressed.push(&game.lanes[3]);
   }
 
-  Image::new_fill(
-      Extent3d {
-          width: TEXTURE_SIZE as u32,
-          height: TEXTURE_SIZE as u32,
-          depth_or_array_layers: 1,
-      },
-      TextureDimension::D2,
-      &texture_data,
-      TextureFormat::Rgba8UnormSrgb,
-      RenderAssetUsages::RENDER_WORLD,
-  )
+  for lane in keys_pressed {
+    let material = materials.get_mut(&lane.material).unwrap();
+    material.base_color = Color::rgb(10.0, 0.0, 0.0);
+  }
 }
 
+const DECAY_SPEED: f32 = 20.0;
+fn update_materials(mut materials: ResMut<Assets<StandardMaterial>>, game: Res<Game>, time: Res<Time>) {
+  for lane in &game.lanes {
+    let material = materials.get_mut(&lane.material).unwrap();
+    let r_val = material.base_color.r();
+    let new_r_val = (r_val - DECAY_SPEED * time.delta_seconds() as f32).max(0.5);
+    material.base_color = Color::rgb(new_r_val, 0.5, 0.5);
+  }
+}
 
 #[test]
 fn add_test() {
