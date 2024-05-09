@@ -9,6 +9,18 @@ pub struct Lane {
 #[derive(Component)]
 pub struct NoteEntity;
 
+#[derive(Component)]
+pub struct Score;
+
+#[derive(Component)]
+pub struct Combo;
+
+#[derive(Default)]
+pub struct AccuracyBar {
+  pub entity: Option<Entity>,
+  pub material: Handle<StandardMaterial>,
+}
+
 #[derive(Default, Clone)]
 pub struct Note {
   pub entity: Option<Entity>,
@@ -16,12 +28,15 @@ pub struct Note {
 
   pub lane: usize,
   pub time: f32,
+  pub hit: bool,
 }
 
 #[derive(Resource, Default)]
 pub struct Game {
   pub lanes: Vec<Lane>,
   pub notes: Vec<Note>,
+  pub accuracy_bars: Vec<AccuracyBar>,
+  pub accuracy_shape: Handle<Mesh>,
   pub score: i32,
   pub combo: i32,
   pub max_combo: i32,
