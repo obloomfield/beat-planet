@@ -265,10 +265,13 @@ fn setup(
 
 
 const NOTE_SCALE_DECAY_RATE: f32 = 30.;
-fn update_transform(mut query: Query<&mut Transform, With<NoteEntity>>, game: Res<Game>, time: Res<Time>) {
+fn update_transform(
+  mut query: Query<(Entity, &mut Transform), With<NoteEntity>>, 
+  game: Res<Game>, time: Res<Time>,
+  camera_query: Query<&Transform, With<Camera>>) {
   for note in &game.notes {
     if let Some(entity) = note.entity {
-      let mut transform = query.get_mut(entity).unwrap();
+      let (entity, mut transform) = query.get_mut(entity).unwrap();
       transform.rotate_y(time.delta_seconds() / 2.);
       transform.translation.z += NOTE_SPEED * time.delta_seconds()*1000.;
       if note.hit {
@@ -276,6 +279,31 @@ fn update_transform(mut query: Query<&mut Transform, With<NoteEntity>>, game: Re
       }
     }
   }
+
+  let camera_transform = if let Ok(camera_transform) = camera_query.single() {
+    camera_transform
+  } else {
+      return; // No camera found, can't perform culling
+  };
+
+  for (entity, mut transform) in query.iter_mut() {
+    let distance = transform.translation.distance(camera_transform.translation);
+    if distance > MAX_DISTANCE {
+        // Remove entities beyond the maximum distance
+        commands.despawn(entity);
+    } else {
+        transform.rotate_y(time.delta_seconds() / 2.);
+        transform.translation.z += NOTE_SPEED * time.delta_seconds() * 1000.;
+        if let Some(note) = game.notes.iter().find(|n| n.entity == Some(entity)) {
+            if note.hit {
+                transform.scale = Vec3::max(
+                    transform.scale - Vec3::splat(NOTE_SCALE_DECAY_RATE * time.delta_seconds()),
+                    Vec3::splat(0.0),
+                );
+            }
+        }s
+    }
+}
 }
 
 const PRESS_DECAY_SPEED: f32 = 20.0;
